@@ -1,24 +1,138 @@
-**Nội dung**
-- [Giới thiệu về Grafana](#giới-thiệu-về-grafana)
-- [Các tính năng của Grafana](#các-tính-năng-của-grafana)
++++
+title = "Cài đặt Grafana"
+date = 2020-05-14T00:38:32+07:00
+weight = 3
+chapter = false
+pre = "<b>3. </b>"
++++
 
-#### Giới thiệu về Grafana
+**Nội dung**  
+Các bước thực hiện:
+- [Bước 1: Cài đặt Grafana lên Amazon EC2](#bước-1-cài-đặt-grafana-lên-amazon-ec2)
+- [Bước 2: Testing Grafana](#bước-2-testing-grafana)
 
-**Grafana** là một phần mềm phân tích trực quan mã nguồn mở. Nó cho phép ta tạo nên các biểu đổ chỉ số dựa trên lượng dữ liệu không lồ đã thu thập được, từ đó giúp ta theo dõi được hoạt động của ứng dụng nói riêng và hệ thống nói chung. 
-Bên cạnh đó sản phẩm còn cung cấp khả năng truy vấn tùy biến, trực quan hóa, tính năng cảnh báo và tìm kiếm các chỉ số bất kể chúng được lưu trữ ở đâu. Có thể nói rằng Grafana giúp biến đổi cơ sở dữ liệu chuỗi theo thời gian (TSDB) thành các biểu đồ và hình ảnh trực quan đẹp mắt được trình bày trên dashboard cho phép tùy chỉnh tuyệt vời.
+#### Bước 1: Cài đặt Grafana lên Amazon EC2
 
-Grafana có thể kết nối với gần như mọi nguồn dữ liệu có thể, chẳng hạn như Graphite, Prometheus, Influx DB, ElasticSearch, MySQL, PostgreSQL, v.v.
-Nó giúp chúng ta theo dõi hành vi của người dùng, hành vi ứng dụng, tần suất xuất hiện lỗi trong quá trình sản xuất hoặc môi trường tiền sản xuất, loại lỗi xuất hiện và các tình huống theo ngữ cảnh khác nhau dựa trên dữ liệu liên quan mà nó được cung cấp.
-Bên cạnh các giải pháp mà mã nguồn mở ban đầu cung cấp, còn có hai dịch vụ khác do nhóm Grafana cung cấp cho các doanh nghiệp được gọi là Grafana Cloud & the Enterprise.
+* SSH vào Grafana EC2 Instance. Giả sử IP **34.201.20.216**
 
-#### Các tính năng của Grafana
+```bash
+ ssh ec2-user@34.201.20.216 -i GrafanaKeyPair.pem
+```
 
-Grafana cung cấp một số tinh năng như sau: 
-- **Visualize**: Trực quan hóa một cách nhanh chóng và linh hoạt với vô số tùy chọn, trực quan hóa dữ liệu của bạn theo bất kỳ cách nào bạn muốn.
-- **Dynamic Dashboards**: Cung cấp trang Dashboards động và có thể sử dụng lại với các biến mẫu xuất hiện dưới dạng danh sách thả xuống ở trang tổng quan. 
-- **Explore Metrics**: Khai thác dữ liệu nhờ vào khả năng truy vấn nhanh chóng và chi tiết. Tách biệt khung nhìn và cung cấp khả năng so sánh giữa các khung thời gian khác nhau, các lệnh truy vấn khác nhau và nguồn dữ liệu khác nhau 
-- **Explore Logs**: Khai thác dữ liệu nhờ vào khả năng chuyển đổi từ dữ liệu biểu đồ sang dữ liệu dạng nhật ký với bộ lọc đã được đánh nhãn từ trước. Cung cấp khả năng tìm kiếm một cách nhanh chóng dựa trên tất cả dữ liệu nhật ký đã lưu cũng như dữ liệu nhật ký thời gian thực. Grafana hoạt động tốt nhất với dữ liệu nguồn Loki nhưng trong tương lai nó cũng sẽ hỗ trợ rất tốt cho những nguồn dữ liệu khác nữa
-- **Alerting**: Giúp định nghĩa các Alert rule một cách trực quan nhất dựa trên những biểu đồ hiển thị trên Dashboards. Trong tương lai, Grafana sẽ tiếp tục cải tiến cho phép gửi đánh giá và báo cáo tới các hệ thống khác như Slack, PagerDuty, VictorOps, OpsGenie.
-- **Mixed Data Sources**: Khả năng biểu diễn dữ liêu hỗn hợp trên cũng một biểu đồ. Hoặc bạn có thể phân loại nguồn dữ liệu theo từng câu lệnh truy vấn, đồng tời cung cấp khả năng truy vấn đối với cơ sở dữ liệu tùy chỉnh.
-- **Annotations**: Chú thích biểu đổ với nhiều nguồn dữ liệu sự kiện khác nhau. Khi rê chuột lên sự kiện, phần mềm sẽ cho ta biết thông tin chi tiết của sự kiện đó bao gồm cả các tag liên quan.
-- **Ad-hoc Filters**: Bộ lọc đặc biệt cho phép bạn tạo nhanh chóng các bộ lọc khóa/giá trị mới, các bộ lọc này tự động được áp dụng cho tất cả các truy vấn sử dụng nguồn dữ liệu đó
+* Do đây là lần đầu ta truy cập EC2 Instance chúng ta cần thực hiện cài đặt các cập nhật mới nhất.
+
+```bash
+sudo yum update -y
+```
+
+* Nhập vào cửa sổ terminal tập lệnh sau để cài đặt Grafana phiên bản mới. 
+
+```bash
+wget https://dl.grafana.com/oss/release/grafana-7.5.5-1.x86_64.rpm
+sudo yum install grafana-7.5.5-1.x86_64.rpm
+```
+
+* Sau khi cài đặt dịch vụ Grafana, bật dịch vụ Grafana bằng tập lệnh sau. 
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start grafana-server
+sudo systemctl status grafana-server
+```
+
+* Khởi động dịch vụ cùng máy chủ bằng tập lệnh sau.
+
+```bash
+sudo systemctl enable grafana-server
+```
+
+* Truy cập Grafana server theo đường dẫn sau với account admin-admin để bắt đầu cấu hình. 
+
+```bash
+https://<Public-IP-Grafana-Server>:3000
+
+  ######## Omitted
+
+Installed:
+  grafana.x86_64 0:7.5.5-1
+
+Dependency Installed:
+  dejavu-fonts-common.noarch 0:2.33-6.amzn2         dejavu-sans-fonts.noarch 0:2.33-6.amzn2         fontconfig.x86_64 0:2.13.0-4.3.amzn2              fontpackages-filesystem.noarch 0:1.44-8.amzn2
+  libfontenc.x86_64 0:1.1.3-3.amzn2.0.2             urw-fonts.noarch 0:2.4-16.amzn2                 xorg-x11-font-utils.x86_64 1:7.5-21.amzn2
+
+Complete!
+```
+
+* Reload lại dịch vụ systemd để nạp các cài đặt mới. Khởi chạy Grafana Server, rồi kiểm tra status.
+
+```bash
+sudo systemctl daemon-reload
+```
+
+* Chạy Grafana Server.
+
+```bash
+sudo systemctl start grafana-server
+```
+
+* Kiểm tra trạng thái của Grafana Server. Trạng thái đầu ra sẽ cho biết grafana-server đang active (running).
+
+```bash
+sudo systemctl status grafana-server
+```
+
+* Chạy lệnh bên dưới để đảm bảo Grafana sẽ luôn tự khởi chạy mỗi lần khởi động lại Amazon Linux 2 instance.
+
+```bash
+sudo systemctl enable grafana-server.service
+```
+
+* Kết quả như bên dưới
+
+```bash
+[ec2-user@ip-10-1-1-193 ~]$ sudo systemctl daemon-reload
+[ec2-user@ip-10-1-1-193 ~]$ sudo systemctl start grafana-server
+[ec2-user@ip-10-1-1-193 ~]$ sudo systemctl status grafana-server
+● grafana-server.service - Grafana instance
+   Loaded: loaded (/usr/lib/systemd/system/grafana-server.service; disabled; vendor preset: disabled)
+   Active: active (running) since Wed 2020-09-09 17:22:31 UTC; 1min 34s ago
+     Docs: http://docs.grafana.org
+ Main PID: 32566 (grafana-server)
+   CGroup: /system.slice/grafana-server.service
+           └─32566 /usr/sbin/grafana-server --config=/etc/grafana/grafana.ini --pidfile=/var/run/grafana/grafana-server.pid --packaging=rpm cfg:default.paths.logs=/var/log/grafana cfg:default.paths.data=...
+
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="Executing migration" logger=migrator id="add unique index user_auth_token.auth_token"
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="Executing migration" logger=migrator id="add unique index user_auth_token.prev_auth_token"
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="Executing migration" logger=migrator id="create cache_data table"
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="Executing migration" logger=migrator id="add unique index cache_data.cache_key"
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="Created default admin" logger=sqlstore user=admin
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="Starting plugin search" logger=plugins
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="Registering plugin" logger=plugins name="Direct Input"
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="External plugins directory created" logger=plugins directory=/var/lib/grafana/plugins
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal systemd[1]: Started Grafana instance.
+Sep 09 17:22:31 ip-10-1-1-193.ec2.internal grafana-server[32566]: t=2020-09-09T17:22:31+0000 lvl=info msg="HTTP Server Listen" logger=http.server address=[::]:3000 protocol=http subUrl= socket=
+[ec2-user@ip-10-1-1-193 ~]$ sudo systemctl enable grafana-server.service
+Created symlink from /etc/systemd/system/multi-user.target.wants/grafana-server.service to /usr/lib/systemd/system/grafana-server.service.
+```
+
+#### Bước 2: Testing Grafana
+
+* Kiểm tra Grafana Server mới được cài đặt bằng cách truy cập địa chỉ Public IP của Grafana EC2 Instance thông qua port 3000.
+
+```bash
+18.206.59.38:3000
+```
+
+* Nó sẽ điều hướng tới trang login của Grafana. Sử dụng tài khoản mặc định với **username** and **password** như bên dưới.
+  * **Username**:	`admin`
+  * **Password**: `admin`
+
+![2](/images/Firsttime-login-Grafana.PNG?width=30pc)
+
+* Sau khi login Grafana, phần mềm sẽ yêu cầu thay đổi admin password.Nhập password mới (except admin) rồi bấm **Save**. 
+
+![2](/images/Change-Gra-pass.PNG?width=30pc)
+
+* Tại trang chủ chúng ta có thể bắt đầu với việc thêm Data Sources, Dashboards, sử dụng Users or Explore plugins và hơn thế nữa.
+
+![2](/images/grafana-landing.PNG?width=100pc)
